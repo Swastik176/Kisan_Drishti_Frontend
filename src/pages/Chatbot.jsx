@@ -53,7 +53,7 @@ const Chatbot = () => {
 
     try {
       const response = await axios.post(
-        `${API_ENDPOINTS.CHATBOT}?Content-Type=application/json`,
+        API_ENDPOINTS.CHATBOT,
         {
           query: userMessage,
         },
