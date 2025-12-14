@@ -4,7 +4,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 
 export const API_ENDPOINTS = {
-  CHATBOT: `${API_BASE_URL}/api/chatbot`,
+  CHATBOT: `${API_BASE_URL}/chatbot/ask`,
   SIMULATION: `${API_BASE_URL}/local-ai/predict`,
 }
 

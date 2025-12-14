@@ -52,12 +52,21 @@ const Chatbot = () => {
     setLoading(true)
 
     try {
-      const response = await axios.post(API_ENDPOINTS.CHATBOT, {
-        message: userMessage,
-        language: language,
-      })
+      const response = await axios.post(
+        `${API_ENDPOINTS.CHATBOT}?Content-Type=application/json`,
+        {
+          query: userMessage,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
 
-      setMessages((prev) => [...prev, { role: 'assistant', content: response.data.response }])
+      // Handle the new response structure with answer, intent, confidence, source_id
+      const answer = response.data.answer || response.data.response || 'No response received.'
+      setMessages((prev) => [...prev, { role: 'assistant', content: answer }])
     } catch (error) {
       console.error('Error sending message:', error)
       setMessages((prev) => [
