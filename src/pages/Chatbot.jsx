@@ -56,11 +56,6 @@ const Chatbot = () => {
         API_ENDPOINTS.CHATBOT,
         {
           query: userMessage,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
         }
       )
 
