@@ -4,6 +4,7 @@ import AboutModal from '../components/AboutModal'
 import axios from 'axios'
 import API_ENDPOINTS from '../config/api'
 import { useLanguage } from '../context/LanguageContext'
+import Select from 'react-select'
 
 const Simulation = () => {
   const { language } = useLanguage()
@@ -11,6 +12,44 @@ const Simulation = () => {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
+  
+  const cropOptions = [
+      { value: 'wheat', label: language === 'hi' ? 'गेहूं (Wheat)' : 'Wheat' },
+      { value: 'rice', label: language === 'hi' ? 'चावल (Rice)' : 'Rice' },
+      { value: 'maize', label: language === 'hi' ? 'मक्का (Maize)' : 'Maize' },
+      { value: 'barley', label: language === 'hi' ? 'जौ (Barley)' : 'Barley' },
+      { value: 'sorghum', label: language === 'hi' ? 'ज्वार (Sorghum)' : 'Sorghum (Jowar)' },
+      { value: 'pearl_millet', label: language === 'hi' ? 'बाजरा (Pearl Millet)' : 'Pearl Millet (Bajra)' },
+      { value: 'finger_millet', label: language === 'hi' ? 'रागी (Finger Millet)' : 'Finger Millet (Ragi)' },
+
+      { value: 'chickpea', label: language === 'hi' ? 'चना (Chickpea)' : 'Chickpea (Gram)' },
+      { value: 'pigeon_pea', label: language === 'hi' ? 'अरहर (Pigeon Pea)' : 'Pigeon Pea (Arhar)' },
+      { value: 'green_gram', label: language === 'hi' ? 'मूंग (Green Gram)' : 'Green Gram (Moong)' },
+      { value: 'black_gram', label: language === 'hi' ? 'उड़द (Black Gram)' : 'Black Gram (Urad)' },
+      { value: 'lentil', label: language === 'hi' ? 'मसूर (Lentil)' : 'Lentil (Masoor)' },
+
+      { value: 'mustard', label: language === 'hi' ? 'सरसों (Mustard)' : 'Mustard' },
+      { value: 'groundnut', label: language === 'hi' ? 'मूंगफली (Groundnut)' : 'Groundnut (Peanut)' },
+      { value: 'soybean', label: language === 'hi' ? 'सोयाबीन (Soybean)' : 'Soybean' },
+
+      { value: 'sugarcane', label: language === 'hi' ? 'गन्ना (Sugarcane)' : 'Sugarcane' },
+      { value: 'cotton', label: language === 'hi' ? 'कपास (Cotton)' : 'Cotton' },
+
+      { value: 'potato', label: language === 'hi' ? 'आलू (Potato)' : 'Potato' },
+      { value: 'tomato', label: language === 'hi' ? 'टमाटर (Tomato)' : 'Tomato' },
+      { value: 'onion', label: language === 'hi' ? 'प्याज (Onion)' : 'Onion' },
+
+      { value: 'mango', label: language === 'hi' ? 'आम (Mango)' : 'Mango' },
+      { value: 'banana', label: language === 'hi' ? 'केला (Banana)' : 'Banana' },
+
+      { value: 'tea', label: language === 'hi' ? 'चाय (Tea)' : 'Tea' },
+      { value: 'coffee', label: language === 'hi' ? 'कॉफी (Coffee)' : 'Coffee' },
+    ]
+
+    const [crop, setCrop] = useState(
+    cropOptions.find((c) => c.value === 'wheat')
+    )
+
 
   // Define simulation parameters matching backend API (13 parameters)
   const [parameters, setParameters] = useState([
@@ -183,6 +222,7 @@ const Simulation = () => {
   }
 
   const handleReset = () => {
+    setCrop('wheat')
     setParameters([
       {
         id: 'soil_moisture',
@@ -311,12 +351,18 @@ const Simulation = () => {
 
     try {
       // Prepare data for submission - backend expects flat object with parameter names as keys
-      const data = parameters.reduce((acc, param) => {
-        acc[param.id] = typeof param.value === 'number' ? param.value : parseFloat(param.value)
+      const data = {
+      crop: crop.value, // 👈 NEW FIELD
+      ...parameters.reduce((acc, param) => {
+        acc[param.id] =
+          typeof param.value === 'number'
+            ? param.value
+            : parseFloat(param.value)
         return acc
-      }, {})
+      }, {}),
+    }
 
-      const response = await axios.post(API_ENDPOINTS.SIMULATION, data)
+    const response = await axios.post(API_ENDPOINTS.SIMULATION, data)
 
       setResult(response.data)
     } catch (err) {
@@ -341,6 +387,24 @@ const Simulation = () => {
         <div className="max-w-5xl mx-auto">
           <h1 className="text-3xl sm:text-4xl font-bold text-kisan-dark-green mb-2">{text.title}</h1>
           <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-8">{text.subtitle}</p>
+
+          {/* Crop Selection */}
+            <div className="mb-6">
+              <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-2">
+                {language === 'hi' ? 'फसल का चयन करें' : 'Select Crop'}
+              </label>
+
+              <Select
+                options={cropOptions}
+                value={crop}
+                onChange={(selected) => setCrop(selected)}
+                isSearchable
+                placeholder={language === 'hi' ? 'फसल खोजें...' : 'Search crop...'}
+                className="sm:w-96"
+                classNamePrefix="react-select"
+              />
+          </div>
+
 
           {/* Parameters Table */}
           <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
@@ -511,4 +575,3 @@ const Simulation = () => {
 }
 
 export default Simulation
-
