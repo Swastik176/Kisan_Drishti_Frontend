@@ -153,6 +153,39 @@ const createDefaultParameters = () => ([
   },
 ])
 
+const normalizeSimulationResult = (data, fallbackCrop) => {
+  if (!data || typeof data !== 'object') {
+    return null
+  }
+
+  if (data.growth_status || data.issues_detected || data.recommended_actions) {
+    return {
+      crop: data.crop || fallbackCrop,
+      growth_status: data.growth_status || 'Unknown',
+      issues_detected: Array.isArray(data.issues_detected) ? data.issues_detected : [],
+      recommended_actions: Array.isArray(data.recommended_actions) ? data.recommended_actions : [],
+    }
+  }
+
+  const localMlPrediction = data.local_ml_prediction || {}
+  const localLlmExplanation = data.local_llm_explanation || {}
+
+  return {
+    crop: data.crop || fallbackCrop,
+    growth_status:
+      localMlPrediction.predicted_condition ||
+      localLlmExplanation.condition ||
+      localMlPrediction.message ||
+      'Unknown',
+    issues_detected: Array.isArray(localLlmExplanation.problems_detected)
+      ? localLlmExplanation.problems_detected
+      : [],
+    recommended_actions: Array.isArray(localLlmExplanation.ai_advice)
+      ? localLlmExplanation.ai_advice
+      : [],
+  }
+}
+
 const Simulation = () => {
   const { language } = useLanguage()
   const [showAbout, setShowAbout] = useState(false)
@@ -295,7 +328,7 @@ const Simulation = () => {
       }
 
       const response = await axios.post(API_ENDPOINTS.SENSOR_PREDICTION, payload)
-      setResult(response.data)
+      setResult(normalizeSimulationResult(response.data, crop.value))
     } catch (err) {
       console.error('Error submitting simulation:', err)
       setError(text.requestError)

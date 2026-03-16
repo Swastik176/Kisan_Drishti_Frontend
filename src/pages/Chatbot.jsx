@@ -5,6 +5,9 @@ import axios from 'axios'
 import API_ENDPOINTS from '../config/api'
 import { useLanguage } from '../context/LanguageContext'
 
+const CHAT_STORAGE_KEY = 'kisan-drishti-chat-messages'
+const CHAT_DRAFT_STORAGE_KEY = 'kisan-drishti-chat-draft'
+
 const formatList = (items) => {
   if (!Array.isArray(items) || items.length === 0) {
     return 'Not provided'
@@ -22,6 +25,14 @@ const buildAssistantMessage = (data, language) => {
     if (typeof data.answer === 'object') {
       return data.answer.answer || data.answer.response || JSON.stringify(data.answer, null, 2)
     }
+  }
+
+  if (typeof data?.response === 'string') {
+    return data.response
+  }
+
+  if (typeof data?.message === 'string') {
+    return data.message
   }
 
   if (data?.disease || data?.crop) {
@@ -56,8 +67,21 @@ const buildAssistantMessage = (data, language) => {
 const Chatbot = () => {
   const { language } = useLanguage()
   const [showAbout, setShowAbout] = useState(false)
-  const [message, setMessage] = useState('')
-  const [messages, setMessages] = useState([])
+  const [message, setMessage] = useState(() => localStorage.getItem(CHAT_DRAFT_STORAGE_KEY) || '')
+  const [messages, setMessages] = useState(() => {
+    const savedMessages = localStorage.getItem(CHAT_STORAGE_KEY)
+
+    if (!savedMessages) {
+      return []
+    }
+
+    try {
+      const parsedMessages = JSON.parse(savedMessages)
+      return Array.isArray(parsedMessages) ? parsedMessages : []
+    } catch {
+      return []
+    }
+  })
   const [loading, setLoading] = useState(false)
   const [selectedImage, setSelectedImage] = useState(null)
   const messagesEndRef = useRef(null)
@@ -71,6 +95,14 @@ const Chatbot = () => {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  useEffect(() => {
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages))
+  }, [messages])
+
+  useEffect(() => {
+    localStorage.setItem(CHAT_DRAFT_STORAGE_KEY, message)
+  }, [message])
 
   const content = {
     en: {
